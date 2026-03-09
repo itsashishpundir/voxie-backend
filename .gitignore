@@ -1,0 +1,25 @@
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Temp
+*.log
+*.tmp
+*.bak
+*.swp
+
+# ChatGPT images (not code)
+ChatGPT Image*.png
+
+# Node
+node_modules/
+package-lock.json
+
+# Git manager itself
+git-manage.bat

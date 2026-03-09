@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite: enums not supported — role and type stored as plain strings
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatarUrl    String?
+  role         String   @default("USER")  // "USER" | "ADMIN"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  progress      UserProgress[]
+  completions   LessonCompletion[]
+  vocabProgress VocabProgress[]
+  achievements  UserAchievement[]
+  leaderboard   LeaderboardEntry[]
+  media         Media[]
+  refreshTokens RefreshToken[]
+  courses       Course[]           @relation("CourseAuthor")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Course {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  description    String
+  sourceLanguage String
+  targetLanguage String
+  level          String
+  difficulty     String   @default("beginner")
+  tags           String   @default("[]") // JSON array stored as string
+  isPublished    Boolean  @default(false)
+  thumbnailUrl   String?
+  version        String   @default("1.0.0")
+  createdById    String
+  createdBy      User     @relation("CourseAuthor", fields: [createdById], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  units       Unit[]
+  vocabulary  Vocabulary[]
+  progress    UserProgress[]
+  leaderboard LeaderboardEntry[]
+}
+
+model Unit {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  slug        String
+  title       String
+  description String   @default("")
+  icon        String   @default("📚")
+  color       String   @default("#4A90E2")
+  orderIndex  Int
+  isPublished Boolean  @default(true)
+  tips        String   @default("[]") // JSON array stored as string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lessons Lesson[]
+
+  @@unique([courseId, slug])
+  @@unique([courseId, orderIndex])
+}
+
+model Lesson {
+  id               String   @id @default(cuid())
+  unitId           String
+  unit             Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  slug             String
+  title            String
+  xpReward         Int      @default(50)
+  difficulty       Int      @default(1)
+  lessonType       String   @default("mixed") // mixed | learning | mcq | fill_blank | build_sentence | listen | speak | match | story | conversation | review
+  tips             String?
+  newWords         String   @default("[]") // JSON array stored as string
+  orderIndex       Int
+  isPublished      Boolean  @default(true)
+  estimatedMinutes Int      @default(5)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  exercises   Exercise[]
+  completions LessonCompletion[]
+
+  @@unique([unitId, slug])
+  @@unique([unitId, orderIndex])
+}
+
+model Exercise {
+  id          String   @id @default(cuid())
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type        String   // see ExerciseTypeConfig.slug for all 23 supported types
+  prompt      String
+  orderIndex  Int
+  difficulty  Int      @default(1)
+  hint        String?
+  explanation String?
+  note        String?
+  imageUrl    String?
+  data        String   // JSON stored as string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([lessonId, orderIndex])
+}
+
+model Vocabulary {
+  id               String   @id @default(cuid())
+  courseId         String
+  course           Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  word             String
+  translation      String
+  audioUrl         String?
+  imageUrl         String?
+  partOfSpeech     String?
+  gender           String?
+  plural           String?
+  example          String?
+  conjugationNotes String?
+  difficulty       Int      @default(1)
+  tags             String   @default("[]") // JSON array stored as string
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  vocabProgress VocabProgress[]
+
+  @@index([courseId])
+}
+
+model UserProgress {
+  id                      String    @id @default(cuid())
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId                String
+  course                  Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  totalXp                 Int       @default(0)
+  currentStreak           Int       @default(0)
+  longestStreak           Int       @default(0)
+  hearts                  Int       @default(5)
+  maxHearts               Int       @default(5)
+  dailyGoal               Int       @default(3)
+  lessonsCompletedToday   Int       @default(0)
+  lastCompletedDate       DateTime?
+  lastHeartLossTime       DateTime?
+  bestCombo               Int       @default(0)
+  perfectLessons          Int       @default(0)
+  reviewSessionsCompleted Int       @default(0)
+  onboardingComplete      Boolean   @default(false)
+  darkMode                Boolean   @default(false)
+  soundEnabled            Boolean   @default(true)
+  unlockedAchievements    String    @default("[]") // JSON array stored as string
+  updatedAt               DateTime  @updatedAt
+
+  @@unique([userId, courseId])
+}
+
+model LessonCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  stars       Int
+  xpEarned    Int
+  accuracy    Int
+  isPerfect   Boolean
+  completedAt DateTime @default(now())
+
+  @@index([userId, lessonId])
+}
+
+model VocabProgress {
+  id           String     @id @default(cuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabId      String
+  vocab        Vocabulary @relation(fields: [vocabId], references: [id], onDelete: Cascade)
+  attempts     Int        @default(0)
+  correctCount Int        @default(0)
+  lastSeenAt   DateTime?
+  nextReviewAt DateTime?
+  easeFactor   Float      @default(2.5)
+
+  @@unique([userId, vocabId])
+}
+
+model UserAchievement {
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  @@id([userId, achievementId])
+}
+
+model LeaderboardEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  weekXp    Int      @default(0)
+  weekStart DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId, weekStart])
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  url          String
+  filename     String
+  mimeType     String
+  size         Int
+  type         String
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model AppConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   // JSON stored as string
+  updatedAt DateTime @updatedAt
+}
+
+// Dynamic exercise type registry — admin can add/toggle/reorder types
+model ExerciseTypeConfig {
+  id          String   @id @default(cuid())
+  slug        String   @unique             // e.g. "mcq", "jumble_word"
+  name        String                       // display name
+  icon        String   @default("📝")
+  description String
+  uiPattern   String                       // Flutter widget family: choice | text_input | pair_match | word_order | word_scramble | voice | true_false | dictation
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
