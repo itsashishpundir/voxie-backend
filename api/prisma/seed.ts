@@ -95,8 +95,9 @@ async function main() {
       },
       {
         lessonId: lesson.id, orderIndex: 3,
-        type: 'build', prompt: 'Put the words in the correct order',
+        type: 'build', prompt: 'Translate this sentence',
         data: JSON.stringify({
+          translation: 'My name is Carlos',
           words: ['me', 'llamo', 'Carlos', 'Yo'],
           correctOrder: ['Yo', 'me', 'llamo', 'Carlos'],
         }),

@@ -15,13 +15,17 @@ const matchData = z.object({
 
 const fillData = z.object({
   sentence: z.string(), // contains ___ for blank
+  options: z.array(z.string()).min(2).max(6),
+  correctIndex: z.number().int().min(0),
   translation: z.string().optional(),
-  correctText: z.string(),
+  audioUrl: z.string().optional(),
 });
 
 const buildData = z.object({
   words: z.array(z.string()).min(2),
   correctOrder: z.array(z.string()).min(2),
+  translation: z.string().optional(), // English meaning shown to user
+  audioUrl: z.string().optional(),
 });
 
 const listenData = z.object({
@@ -167,8 +171,8 @@ const categorySortData = z.object({
 // Fill in the Blanks — fill blank with multiple choice options
 const fillBlankData = z.object({
   sentence: z.string(), // contains ___ for blank
-  correctText: z.string(),
   options: z.array(z.string()).min(2).max(6),
+  correctIndex: z.number().int().min(0),
   translation: z.string().optional(),
   audioUrl: z.string().optional(),
 });
@@ -177,6 +181,7 @@ const fillBlankData = z.object({
 const sentenceCorrectionData = z.object({
   incorrectSentence: z.string(),
   correctSentence: z.string(),
+  translation: z.string().optional(), // English meaning of the correct sentence
   errorType: z.string().optional(), // e.g. "grammar", "spelling", "word order"
   explanation: z.string().optional(),
 });

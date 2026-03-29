@@ -16,6 +16,7 @@ desktop.ini
 
 # ChatGPT images (not code)
 ChatGPT Image*.png
+"Fill in the blanks.png"
 
 # Node
 node_modules/
@@ -23,3 +24,19 @@ package-lock.json
 
 # Git manager itself
 git-manage.bat
+
+# Next.js build output
+dashboard/.next/
+
+# SQLite dev database (local only)
+api/prisma/dev.db
+api/prisma/dev.db-journal
+
+# Environment files
+api/.env
+dashboard/.env
+api/.env.local
+dashboard/.env.local
+
+# Uploads
+api/uploads/

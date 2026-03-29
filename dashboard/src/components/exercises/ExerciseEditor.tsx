@@ -76,7 +76,7 @@ export function ExerciseEditor({ type, initial, orderIndex, onSubmit, loading, e
         {/* ── Original 10 ── */}
         {type === 'translate'           && <TranslateFields register={register} watch={watch} />}
         {type === 'match'               && <MatchFields register={register} pairsField={pairsField} />}
-        {type === 'fill'                && <FillFields register={register} />}
+        {type === 'fill'                && <FillFields register={register} watch={watch} />}
         {type === 'build'               && <BuildFields register={register} />}
         {type === 'listen'              && <ListenFields register={register} watch={watch} />}
         {type === 'speak'               && <SpeakFields register={register} />}
@@ -157,12 +157,25 @@ function MatchFields({ register, pairsField }: any) {
   );
 }
 
-function FillFields({ register }: any) {
+function FillFields({ register, watch }: any) {
+  const correctIndex = watch('correctIndex');
   return (
     <div className="space-y-3">
       <div><label className="label">Sentence (use ___ for blank)</label><input {...register('sentence')} className="input font-mono" placeholder="El ___ es rojo." required /></div>
-      <div><label className="label">Correct Text (what goes in the blank)</label><input {...register('correctText')} className="input" placeholder="libro" required /></div>
       <div><label className="label">Translation hint (optional)</label><input {...register('translation')} className="input" placeholder="The ___ is red." /></div>
+      <div><label className="label">Audio URL (optional)</label><input {...register('audioUrl')} className="input" /></div>
+      <div>
+        <label className="label">Options (mark the correct one)</label>
+        <div className="space-y-2">
+          {[0,1,2,3].map((i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input type="radio" {...register('correctIndex', { valueAsNumber: true })} value={i} defaultChecked={i === 0} />
+              <input {...register(`options.${i}`)} className="input" placeholder={`Option ${i + 1}`} required />
+              {Number(correctIndex) === i && <span className="badge-green">✓ Correct</span>}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -170,8 +183,9 @@ function FillFields({ register }: any) {
 function BuildFields({ register }: any) {
   return (
     <div className="space-y-3">
+      <div><label className="label">English Translation (shown to user as the goal)</label><input {...register('translation')} className="input" placeholder="My name is Carlos" required /></div>
       <div><label className="label">Correct word order (space-separated)</label><input {...register('correctOrder')} className="input font-mono" placeholder="Yo me llamo Carlos" required /></div>
-      <div><label className="label">Shuffled words (space-separated, include distractors)</label><input {...register('words')} className="input font-mono" placeholder="me Carlos llamo Yo" required /></div>
+      <div><label className="label">Shuffled words (space-separated, include distractors)</label><input {...register('words')} className="input font-mono" placeholder="me Carlos llamo Yo soy" required /></div>
       <p className="text-xs text-gray-400">Both fields accept space-separated words. Stored as arrays.</p>
     </div>
   );
@@ -573,15 +587,14 @@ function FillBlankFields({ register, watch }: any) {
   return (
     <div className="space-y-3">
       <div><label className="label">Sentence (use ___ for blank)</label><input {...register('sentence')} className="input font-mono" placeholder="El ___ es rojo." required /></div>
-      <div><label className="label">Correct Text (the answer)</label><input {...register('correctText')} className="input" placeholder="libro" required /></div>
       <div><label className="label">Translation hint (optional)</label><input {...register('translation')} className="input" placeholder="The ___ is red." /></div>
       <div><label className="label">Audio URL (optional)</label><input {...register('audioUrl')} className="input" /></div>
       <div>
-        <label className="label">Choice Options (mark correct — first 4 shown)</label>
+        <label className="label">Options (mark the correct one)</label>
         <div className="space-y-2">
           {[0,1,2,3].map((i) => (
             <div key={i} className="flex items-center gap-2">
-              <input type="radio" {...register('correctIndex', { valueAsNumber: true })} value={i} />
+              <input type="radio" {...register('correctIndex', { valueAsNumber: true })} value={i} defaultChecked={i === 0} />
               <input {...register(`options.${i}`)} className="input" placeholder={`Option ${i + 1}`} required />
               {Number(correctIndex) === i && <span className="badge-green">✓ Correct</span>}
             </div>
@@ -597,6 +610,7 @@ function SentenceCorrectionFields({ register }: any) {
     <div className="space-y-3">
       <div><label className="label">Incorrect Sentence (contains the error)</label><textarea {...register('incorrectSentence')} className="input resize-none font-mono" rows={2} placeholder="Yo soy llamo Carlos." required /></div>
       <div><label className="label">Correct Sentence (the fixed version)</label><textarea {...register('correctSentence')} className="input resize-none font-mono" rows={2} placeholder="Yo me llamo Carlos." required /></div>
+      <div><label className="label">English Meaning (shown to user as context)</label><input {...register('translation')} className="input" placeholder="My name is Carlos." /></div>
       <div><label className="label">Error Type (optional)</label>
         <select {...register('errorType')} className="input">
           <option value="">— select —</option>
@@ -630,8 +644,8 @@ function getDefaultData(type: string): any {
     // Original 10
     case 'translate':           return { question: '', options: ['', '', '', ''], correctIndex: 0 };
     case 'match':               return { pairs: [{ left: '', right: '' }, { left: '', right: '' }] };
-    case 'fill':                return { sentence: '', correctText: '' };
-    case 'build':               return { correctOrder: '', words: '' };
+    case 'fill':                return { sentence: '', options: ['', '', '', ''], correctIndex: 0 };
+    case 'build':               return { translation: '', correctOrder: '', words: '' };
     case 'listen':              return { audioUrl: '', options: ['', '', '', ''], correctIndex: 0, correctText: '' };
     case 'speak':               return { targetText: '', acceptedPronunciations: '' };
     case 'type_answer':         return { question: '', acceptedAnswers: [''] };
@@ -649,7 +663,7 @@ function getDefaultData(type: string): any {
     case 'flashcard':           return { front: '', back: '' };
     case 'picture_word':        return { imageUrl: '', correctWord: '', hasOptions: false, options: ['', '', '', ''], correctIndex: 0 };
     case 'category_sort':       return { categories: [{ name: '' }, { name: '' }], items: [{ text: '', categoryIndex: 0 }] };
-    case 'fill_blank':          return { sentence: '', correctText: '', options: ['', '', '', ''], correctIndex: 0 };
+    case 'fill_blank':          return { sentence: '', options: ['', '', '', ''], correctIndex: 0 };
     case 'sentence_correction': return { incorrectSentence: '', correctSentence: '' };
     case 'word_order':          return { correctOrder: '', words: '' };
     default:                    return {};
@@ -664,9 +678,10 @@ function buildData(type: string, values: any): any {
     case 'match':
       return { pairs: values.pairs?.filter((p: any) => p.left && p.right) };
     case 'fill':
-      return { sentence: values.sentence, correctText: values.correctText, translation: values.translation || undefined };
+      return { sentence: values.sentence, options: values.options?.filter(Boolean), correctIndex: Number(values.correctIndex), translation: values.translation || undefined, audioUrl: values.audioUrl || undefined };
     case 'build':
       return {
+        translation: values.translation || undefined,
         correctOrder: (values.correctOrder || '').split(/\s+/).filter(Boolean),
         words: (values.words || '').split(/\s+/).filter(Boolean),
       };
@@ -708,9 +723,9 @@ function buildData(type: string, values: any): any {
     case 'category_sort':
       return { categories: (values.categories || []).filter((c: any) => c.name).map((c: any) => ({ name: c.name, color: c.color || undefined })), items: (values.items || []).filter((it: any) => it.text).map((it: any) => ({ text: it.text, categoryIndex: Number(it.categoryIndex), imageUrl: it.imageUrl || undefined })) };
     case 'fill_blank':
-      return { sentence: values.sentence, correctText: values.correctText, options: values.options?.filter(Boolean), translation: values.translation || undefined, audioUrl: values.audioUrl || undefined };
+      return { sentence: values.sentence, options: values.options?.filter(Boolean), correctIndex: Number(values.correctIndex), translation: values.translation || undefined, audioUrl: values.audioUrl || undefined };
     case 'sentence_correction':
-      return { incorrectSentence: values.incorrectSentence, correctSentence: values.correctSentence, errorType: values.errorType || undefined, explanation: values.explanation || undefined };
+      return { incorrectSentence: values.incorrectSentence, correctSentence: values.correctSentence, translation: values.translation || undefined, errorType: values.errorType || undefined, explanation: values.explanation || undefined };
     case 'word_order':
       return { correctOrder: (values.correctOrder || '').split(/\s+/).filter(Boolean), words: (values.words || '').split(/\s+/).filter(Boolean), translation: values.translation || undefined, audioUrl: values.audioUrl || undefined };
     default:
