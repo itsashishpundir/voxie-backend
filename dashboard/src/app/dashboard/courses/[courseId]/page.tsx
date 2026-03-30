@@ -181,12 +181,12 @@ export default function CourseDetailPage() {
 
       {/* Create Unit Modal */}
       <Modal open={showUnit} onClose={() => setShowUnit(false)} title="Add Unit">
-        <UnitForm onSubmit={(d) => createUnit.mutate(d)} loading={createUnit.isPending} unitCount={units.length} />
+        <UnitForm onSubmit={(d: any) => createUnit.mutate(d)} loading={createUnit.isPending} unitCount={units.length} />
       </Modal>
 
       {/* Edit Unit Modal */}
       <Modal open={!!editingUnit} onClose={() => setEditingUnit(null)} title="Edit Unit">
-        <UnitForm initial={editingUnit} onSubmit={(d) => updateUnit.mutate({ id: editingUnit.id, data: d })} loading={updateUnit.isPending} unitCount={units.length} />
+        <UnitForm initial={editingUnit} onSubmit={(d: any) => updateUnit.mutate({ id: editingUnit.id, data: d })} loading={updateUnit.isPending} unitCount={units.length} />
       </Modal>
     </div>
   );
@@ -204,7 +204,7 @@ function UnitForm({ initial, onSubmit, loading, unitCount }: any) {
   const title = watch('title');
 
   return (
-    <form onSubmit={handleSubmit((d) => onSubmit({ ...d, orderIndex: Number(d.orderIndex), tips: d.tips ? d.tips.split('\n').filter(Boolean) : [] }))} className="space-y-4">
+    <form onSubmit={handleSubmit((d: any) => onSubmit({ ...d, orderIndex: Number(d.orderIndex), tips: d.tips ? d.tips.split('\n').filter(Boolean) : [] }))} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2"><label className="label">Title</label><input {...register('title')} onBlur={() => !initial && setValue('slug', slugify(title))} className="input" placeholder="Greetings" required /></div>
         <div><label className="label">Slug</label><input {...register('slug')} className="input font-mono text-xs" required /></div>

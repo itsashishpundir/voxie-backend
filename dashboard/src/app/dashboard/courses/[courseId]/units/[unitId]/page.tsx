@@ -156,10 +156,10 @@ export default function UnitDetailPage() {
       )}
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Lesson">
-        <LessonForm onSubmit={(d) => createLesson.mutate(d)} loading={createLesson.isPending} lessonCount={lessons.length} />
+        <LessonForm onSubmit={(d: any) => createLesson.mutate(d)} loading={createLesson.isPending} lessonCount={lessons.length} />
       </Modal>
       <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit Lesson">
-        <LessonForm initial={editing} onSubmit={(d) => updateLesson.mutate({ id: editing.id, data: d })} loading={updateLesson.isPending} lessonCount={lessons.length} />
+        <LessonForm initial={editing} onSubmit={(d: any) => updateLesson.mutate({ id: editing.id, data: d })} loading={updateLesson.isPending} lessonCount={lessons.length} />
       </Modal>
     </div>
   );
