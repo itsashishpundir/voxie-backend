@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Voxie Language Learning API",
   "main": "dist/server.js",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "nodemon --exec tsx src/server.ts",
     "build": "tsc",
